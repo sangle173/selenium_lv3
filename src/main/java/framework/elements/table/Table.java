@@ -4,7 +4,6 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import framework.elements.core.BaseElement;
 import framework.utils.LogUtils;
-import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import java.util.List;
 import java.util.ArrayList;
@@ -159,40 +158,73 @@ public class Table extends BaseElement {
             return String.format("Table '%s'", getName());
         }
     }
-        return allRows;
-    }
 
     /**
      * Get column values by header
      */
     public List<String> getColumnValues(String header) {
-        List<String> headers = getHeaders();
-        int columnIndex = headers.indexOf(header);
-        if (columnIndex == -1) {
-            throw new IllegalArgumentException("Header not found: " + header);
+        LogUtils.logAction(toString(), String.format("Getting column values for header: '%s'", header));
+        try {
+            List<String> headers = getHeaders();
+            int columnIndex = headers.indexOf(header);
+            if (columnIndex == -1) {
+                LogUtils.logWarning(toString(), String.format("Header not found: '%s'", header));
+                throw new IllegalArgumentException("Header not found: " + header);
+            }
+            
+            List<String> values = new ArrayList<>();
+            int rowCount = getRowCount();
+            
+            for (int i = 0; i < rowCount; i++) {
+                values.add(getCellText(i, columnIndex));
+            }
+            
+            LogUtils.logSuccess(toString(), String.format("Got %d values for column '%s'", 
+                values.size(), header));
+            return values;
+        } catch (Exception e) {
+            LogUtils.logError(toString(), 
+                String.format("Failed to get values for column: '%s'", header), e);
+            throw e;
         }
-        
-        List<String> values = new ArrayList<>();
-        int rowCount = getRowCount();
-        
-        for (int i = 0; i < rowCount; i++) {
-            values.add(getCellText(i, columnIndex));
-        }
-        return values;
     }
 
     /**
      * Find row index by column value
      */
     public int findRowByColumnValue(String header, String value) {
-        List<String> columnValues = getColumnValues(header);
-        return columnValues.indexOf(value);
+        LogUtils.logAction(toString(), 
+            String.format("Finding row with value '%s' in column '%s'", value, header));
+        try {
+            List<String> columnValues = getColumnValues(header);
+            int rowIndex = columnValues.indexOf(value);
+            if (rowIndex != -1) {
+                LogUtils.logSuccess(toString(), 
+                    String.format("Found value '%s' at row %d", value, rowIndex));
+            } else {
+                LogUtils.logWarning(toString(), 
+                    String.format("Value '%s' not found in column '%s'", value, header));
+            }
+            return rowIndex;
+        } catch (Exception e) {
+            LogUtils.logError(toString(), 
+                String.format("Failed to find row by value '%s' in column '%s'", value, header), e);
+            throw e;
+        }
     }
 
     /**
      * Click cell by row and column index
      */
     public void clickCell(int row, int col) {
-        getCell(row, col).click();
+        LogUtils.logAction(toString(), String.format("Clicking cell at [%d, %d]", row, col));
+        try {
+            getCell(row, col).click();
+            LogUtils.logSuccess(toString(), String.format("Clicked cell at [%d, %d]", row, col));
+        } catch (Exception e) {
+            LogUtils.logError(toString(), 
+                String.format("Failed to click cell at [%d, %d]", row, col), e);
+            throw e;
+        }
     }
 }

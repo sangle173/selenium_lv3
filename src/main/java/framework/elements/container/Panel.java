@@ -1,6 +1,7 @@
 package framework.elements.container;
 
 import framework.elements.core.BaseElement;
+import framework.utils.LogUtils;
 import com.codeborne.selenide.Condition;
 
 /**
@@ -23,9 +24,18 @@ public class Panel extends BaseElement {
      * Expand the panel
      */
     public void expand() {
-        if (!isExpanded()) {
-            element.$(expandButtonLocator).click();
-            element.$(contentLocator).shouldBe(Condition.visible);
+        LogUtils.logAction(toString(), "Expanding panel");
+        try {
+            if (!isExpanded()) {
+                element.$(expandButtonLocator).click();
+                element.$(contentLocator).shouldBe(Condition.visible);
+                LogUtils.logSuccess(toString(), "Panel expanded successfully");
+            } else {
+                LogUtils.logAction(toString(), "Panel is already expanded");
+            }
+        } catch (Exception e) {
+            LogUtils.logError(toString(), "Failed to expand panel", e);
+            throw e;
         }
     }
 
@@ -33,9 +43,18 @@ public class Panel extends BaseElement {
      * Collapse the panel
      */
     public void collapse() {
-        if (isExpanded()) {
-            element.$(collapseButtonLocator).click();
-            element.$(contentLocator).shouldBe(Condition.hidden);
+        LogUtils.logAction(toString(), "Collapsing panel");
+        try {
+            if (isExpanded()) {
+                element.$(collapseButtonLocator).click();
+                element.$(contentLocator).shouldBe(Condition.hidden);
+                LogUtils.logSuccess(toString(), "Panel collapsed successfully");
+            } else {
+                LogUtils.logAction(toString(), "Panel is already collapsed");
+            }
+        } catch (Exception e) {
+            LogUtils.logError(toString(), "Failed to collapse panel", e);
+            throw e;
         }
     }
 
@@ -43,17 +62,35 @@ public class Panel extends BaseElement {
      * Check if panel is expanded
      */
     public boolean isExpanded() {
-        return element.$(contentLocator).is(Condition.visible);
+        LogUtils.logAction(toString(), "Checking if panel is expanded");
+        try {
+            boolean expanded = element.$(contentLocator).is(Condition.visible);
+            LogUtils.logSuccess(toString(), expanded ? "Panel is expanded" : "Panel is collapsed");
+            return expanded;
+        } catch (Exception e) {
+            LogUtils.logWarning(toString(), "Failed to check panel state: " + e.getMessage());
+            return false;
+        }
     }
 
     /**
      * Toggle panel state
      */
     public void toggle() {
-        if (isExpanded()) {
-            collapse();
-        } else {
-            expand();
+        LogUtils.logAction(toString(), "Toggling panel state");
+        try {
+            boolean wasExpanded = isExpanded();
+            if (wasExpanded) {
+                collapse();
+            } else {
+                expand();
+            }
+            LogUtils.logSuccess(toString(), String.format("Panel toggled from %s to %s",
+                wasExpanded ? "expanded" : "collapsed",
+                !wasExpanded ? "expanded" : "collapsed"));
+        } catch (Exception e) {
+            LogUtils.logError(toString(), "Failed to toggle panel", e);
+            throw e;
         }
     }
 
@@ -61,14 +98,37 @@ public class Panel extends BaseElement {
      * Get panel title
      */
     public String getTitle() {
-        return element.$("[role='heading']").getText();
+        LogUtils.logAction(toString(), "Getting panel title");
+        try {
+            String title = element.$("[role='heading']").getText();
+            LogUtils.logSuccess(toString(), "Got panel title: " + title);
+            return title;
+        } catch (Exception e) {
+            LogUtils.logError(toString(), "Failed to get panel title", e);
+            throw e;
+        }
     }
 
     /**
      * Get panel content
      */
     public String getContent() {
-        return element.$(contentLocator).getText();
+        LogUtils.logAction(toString(), "Getting panel content");
+        try {
+            String content = element.$(contentLocator).getText();
+            LogUtils.logSuccess(toString(), "Got panel content");
+            return content;
+        } catch (Exception e) {
+            LogUtils.logError(toString(), "Failed to get panel content", e);
+            throw e;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Panel '%s' [%s] {state: %s}", 
+            getName(), getLocator(),
+            isExpanded() ? "expanded" : "collapsed");
     }
 
     /**
