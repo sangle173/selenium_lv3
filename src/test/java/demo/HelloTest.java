@@ -1,22 +1,20 @@
 package demo;
 
-import com.codeborne.selenide.Configuration;
-import org.testng.annotations.BeforeClass;
+import base.BaseTest;
 import org.testng.annotations.Test;
-
+import com.codeborne.selenide.Condition;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.*;
 
-public class HelloTest {
-    @BeforeClass
-    public void setup() {
-        Configuration.browser = "chrome";
-    }
-
+public class HelloTest extends BaseTest {
     @Test
-   public void openGoogleAndSearch() {
+    public void openGoogleAndSearch() {
+        // Wait for page load
         open("https://google.com");
-        $("[name='q']").setValue("Selenide").pressEnter();
-        $$("#search a").findBy(text("selenide.org")).shouldBe();
-   }
+        $("[name='q']").shouldBe(Condition.visible).setValue("Selenide").pressEnter();
+        
+        // Add explicit wait and more robust selector
+        $$("#search a").findBy(Condition.text("selenide.org"))
+            .shouldBe(Condition.visible, Condition.exist);
+    }
 }
